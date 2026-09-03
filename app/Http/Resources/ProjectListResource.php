@@ -15,6 +15,7 @@ class ProjectListResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'project_id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
         ];
