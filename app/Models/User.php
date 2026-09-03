@@ -12,7 +12,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable , HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -24,6 +24,7 @@ class User extends Authenticatable
         'email',
         'password',
         'verification_code',
+        'verification_code_sent_at',
     ];
 
     /**
@@ -34,6 +35,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'verification_code',           // never expose OTP in API responses
+        'verification_code_sent_at',
     ];
 
     /**
@@ -44,8 +47,9 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+            'email_verified_at'          => 'datetime',
+            'verification_code_sent_at'  => 'datetime',
+            'password'                   => 'hashed',
         ];
     }
 }
