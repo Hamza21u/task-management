@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProjectController;
 
 
 Route::get('/', function () {
@@ -24,5 +25,14 @@ Route::prefix('auth')->middleware(['throttle:10,1'])->group(function () {
 
 // Protected routes — require a valid Sanctum token
 Route::middleware(['auth:sanctum'])->group(function () {
+    // Auth
     Route::post('auth/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+
+Route::prefix('projects')->middleware(['auth:sanctum'])->group(function () {
+    Route::get('/', [ProjectController::class, 'list'])->name('projects.list')->middleware('auth:sanctum');
+    Route::post('create', [ProjectController::class, 'create'])->name('projects.create')->middleware('auth:sanctum');
+    Route::post('/update', [ProjectController::class, 'update'])->name('projects.update')->middleware('auth:sanctum');
+    Route::delete('/destroy', [ProjectController::class, 'destroy'])->name('projects.destroy')->middleware('auth:sanctum');
 });
