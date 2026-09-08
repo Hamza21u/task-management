@@ -9,6 +9,10 @@ use App\Http\Requests\StoreProjectRequest;
 use App\Http\Resources\ProjectListResource;
 use Illuminate\Support\Str;
 use App\Models\Project;
+//auth
+use Illuminate\Support\Facades\Auth;
+
+
 class ProjectController extends Controller
 {
     /**
@@ -16,28 +20,27 @@ class ProjectController extends Controller
      */
     public function list(Request $request)
     {
-        $projects = $request->user()->projects;
+        $projects = Project::where('user_id',Auth::user()->id)->get();
         return  ProjectListResource::collection($projects);
     }
 
     public function create(StoreProjectRequest $request)
     {
-        Project::create([
-            'user_id' => $request->user()->id,
-            'name' => $request->name,
+       $project=  Project::create([
+            'user_id' =>Auth::user()->id,
+            'project_name' => $request->name,
             'slug' => $this->generateSlug($request->name),
         ]);
-        return new ProjectListResource($request->user()->projects()->latest()->first());
-
+        return new ProjectListResource($project);
     }
 
     //update
     public function update(Request $request)
     {
         $project = Project::where('slug', $request->slug)->first();
-        if($project && $project->user_id === $request->user()->id){
+        if($project && $project->user_id ===Auth::user()->id){
             $project->update([
-                'name' => $request->name,
+                'project_name' => $request->name,
                 'slug' => $this->generateSlug($request->name),
             ]);
             return new ProjectListResource($project);
@@ -52,7 +55,7 @@ class ProjectController extends Controller
     public function destroy(Request $request)
     {
         $project = Project::where('slug', $request->slug)->first();
-        if($project && $project->user_id === $request->user()->id){
+        if($project && $project->user_id ===Auth::user()->id){
             $project->delete();
             return response()->json(['message' => 'Project deleted successfully']);
         }else{
@@ -71,7 +74,6 @@ class ProjectController extends Controller
     }
 
 
-    //delete project
        
    
 }

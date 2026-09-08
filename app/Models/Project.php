@@ -18,17 +18,11 @@ class Project extends Model
      */
     protected $fillable = [
         'user_id',
-        'name',
+        'project_name',
         'slug',
     ];
 
 
 
-    /**
-     * A project belongs to a user.
-     */
-    public function user(): BelongsTo
-    {
-        return $this->belongsTo(User::class);
-    }
+  
 }

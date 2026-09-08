@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ProjectListResource extends JsonResource
+class ProjectListItemResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,9 +15,9 @@ class ProjectListResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+            'project_list_id' => $this->project_list_id,
+            'list_name' => $this->list_name,
             'project_id' => $this->project_id,
-            'project_name' => $this->project_name,
-            'slug' => $this->slug,
         ];
     }
 }

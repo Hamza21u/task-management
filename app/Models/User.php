@@ -54,11 +54,4 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * A user has many projects.
-     */
-    public function projects(): HasMany
-    {
-        return $this->hasMany(Project::class);
-    }
 }

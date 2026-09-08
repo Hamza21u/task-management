@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectListController;
 
 
 Route::get('/', function () {
@@ -35,4 +36,12 @@ Route::prefix('projects')->middleware(['auth:sanctum'])->group(function () {
     Route::post('create', [ProjectController::class, 'create'])->name('projects.create')->middleware('auth:sanctum');
     Route::post('/update', [ProjectController::class, 'update'])->name('projects.update')->middleware('auth:sanctum');
     Route::delete('/destroy', [ProjectController::class, 'destroy'])->name('projects.destroy')->middleware('auth:sanctum');
+
+
+
+
+    Route::post('/{project}/lists', [ProjectListController::class, 'create'])->name('projects.lists.create')->middleware('auth:sanctum');
+    Route::post('/{project}/lists/{list}', [ProjectListController::class, 'update'])->name('projects.lists.update')->middleware('auth:sanctum');
+    Route::delete('/{project}/lists/{list}', [ProjectListController::class, 'destroy'])->name('projects.lists.destroy')->middleware('auth:sanctum');    
 });
+
