@@ -2,79 +2,96 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
-use App\Models\Project;
 use App\Models\ProjectList;
 use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
-    public function create(StoreTaskRequest $request, $project)
+    /**
+     * Create a new task under a specific list.
+     * Route: POST /api/lists/{list}/tasks
+     */
+    public function create(StoreTaskRequest $request, string|int $list)
     {
-        $project = Project::where('slug', $project)->first();
+        // Find list belonging to a project owned by the authenticated user
+        $projectList = ProjectList::where('project_list_id', $list)
+            ->whereHas('project', function ($query) {
+                $query->where('user_id', Auth::id());
+            })
+            ->first();
 
-        if ($project && $project->user_id === Auth::user()->id) {
-            $list = ProjectList::where('project_list_id', $request->project_list_id)
-                ->where('project_id', $project->project_id)
+        if (!$projectList) {
+            return response()->json(['error' => 'Project list not found or unauthorized'], 404);
+        }
+
+        $task = $projectList->tasks()->create([
+            'task_title'       => $request->task_title,
+            'task_description' => $request->task_description,
+        ]);
+
+        return (new TaskResource($task))->response()->setStatusCode(201);
+    }
+
+    /**
+     * Update an existing task.
+     * Route: POST|PUT /api/tasks/{task}
+     */
+    public function update(UpdateTaskRequest $request, string|int $task)
+    {
+        // Locate task belonging to a project owned by the authenticated user
+        $taskModel = Task::where('task_id', $task)
+            ->whereHas('list.project', function ($query) {
+                $query->where('user_id', Auth::id());
+            })
+            ->first();
+
+        if (!$taskModel) {
+            return response()->json(['error' => 'Task not found or unauthorized'], 404);
+        }
+
+        // If moving task to another list, verify target list also belongs to the authenticated user
+        if ($request->filled('project_list_id')) {
+            $targetList = ProjectList::where('project_list_id', $request->project_list_id)
+                ->whereHas('project', function ($query) {
+                    $query->where('user_id', Auth::id());
+                })
                 ->first();
 
-            if ($list) {
-                $task = Task::create([
-                    'project_list_id'  => $list->project_list_id,
-                    'task_title'       => $request->task_title,
-                    'task_description' => $request->task_description,
-                ]);
-                return new TaskResource($task);
-            } else {
-                return response()->json(['error' => 'Project list not found'], 404);
+            if (!$targetList) {
+                return response()->json(['error' => 'Target project list not found or unauthorized'], 422);
             }
-        } else {
-            return response()->json(['error' => 'Project not found or unauthorized'], 404);
         }
+
+        $taskModel->update($request->validated());
+
+        return new TaskResource($taskModel);
     }
 
-    //update
-    public function update(Request $request, $project, $task)
+    /**
+     * Delete an existing task.
+     * Route: DELETE /api/tasks/{task}
+     */
+    public function destroy(Request $request, string|int $task): JsonResponse
     {
-        $project = Project::where('slug', $project)->first();
+        // Locate task belonging to a project owned by the authenticated user
+        $taskModel = Task::where('task_id', $task)
+            ->whereHas('list.project', function ($query) {
+                $query->where('user_id', Auth::id());
+            })
+            ->first();
 
-        if ($project && $project->user_id === Auth::user()->id) {
-            $task = Task::where('task_id', $task)->first();
-
-            if ($task && $task->list && $task->list->project_id === $project->project_id) {
-                $task->update([
-                    'project_list_id'  => $request->project_list_id ?? $task->project_list_id,
-                    'task_title'       => $request->task_title ?? $task->task_title,
-                    'task_description' => $request->task_description ?? $task->task_description,
-                ]);
-                return new TaskResource($task);
-            } else {
-                return response()->json(['error' => 'Task not found'], 404);
-            }
-        } else {
-            return response()->json(['error' => 'Project not found or unauthorized'], 404);
+        if (!$taskModel) {
+            return response()->json(['error' => 'Task not found or unauthorized'], 404);
         }
-    }
 
-    //destroy
-    public function destroy(Request $request, $project, $task)
-    {
-        $project = Project::where('slug', $project)->first();
+        $taskModel->delete();
 
-        if ($project && $project->user_id === Auth::user()->id) {
-            $task = Task::where('task_id', $task)->first();
-
-            if ($task && $task->list && $task->list->project_id === $project->project_id) {
-                $task->delete();
-                return response()->json(['message' => 'Task deleted successfully']);
-            } else {
-                return response()->json(['error' => 'Task not found'], 404);
-            }
-        } else {
-            return response()->json(['error' => 'Project not found or unauthorized'], 404);
-        }
+        return response()->json(['message' => 'Task deleted successfully']);
     }
 }
