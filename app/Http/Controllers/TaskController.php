@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Project;
+use App\Models\ProjectList;
 use App\Models\Task;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,13 +17,20 @@ class TaskController extends Controller
         $project = Project::where('slug', $project)->first();
 
         if ($project && $project->user_id === Auth::user()->id) {
-            $task = Task::create([
-                'project_id'       => $project->project_id,
-                'project_list_id'  => $request->project_list_id,
-                'task_title'       => $request->task_title,
-                'task_description' => $request->task_description,
-            ]);
-            return new TaskResource($task);
+            $list = ProjectList::where('project_list_id', $request->project_list_id)
+                ->where('project_id', $project->project_id)
+                ->first();
+
+            if ($list) {
+                $task = Task::create([
+                    'project_list_id'  => $list->project_list_id,
+                    'task_title'       => $request->task_title,
+                    'task_description' => $request->task_description,
+                ]);
+                return new TaskResource($task);
+            } else {
+                return response()->json(['error' => 'Project list not found'], 404);
+            }
         } else {
             return response()->json(['error' => 'Project not found or unauthorized'], 404);
         }
@@ -34,11 +42,9 @@ class TaskController extends Controller
         $project = Project::where('slug', $project)->first();
 
         if ($project && $project->user_id === Auth::user()->id) {
-            $task = Task::where('task_id', $task)
-                ->where('project_id', $project->project_id)
-                ->first();
+            $task = Task::where('task_id', $task)->first();
 
-            if ($task) {
+            if ($task && $task->list && $task->list->project_id === $project->project_id) {
                 $task->update([
                     'project_list_id'  => $request->project_list_id ?? $task->project_list_id,
                     'task_title'       => $request->task_title ?? $task->task_title,
@@ -59,11 +65,9 @@ class TaskController extends Controller
         $project = Project::where('slug', $project)->first();
 
         if ($project && $project->user_id === Auth::user()->id) {
-            $task = Task::where('task_id', $task)
-                ->where('project_id', $project->project_id)
-                ->first();
+            $task = Task::where('task_id', $task)->first();
 
-            if ($task) {
+            if ($task && $task->list && $task->list->project_id === $project->project_id) {
                 $task->delete();
                 return response()->json(['message' => 'Task deleted successfully']);
             } else {
