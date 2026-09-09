@@ -27,46 +27,38 @@ class ProjectListController extends Controller
     }
 
     //update
-    public function update(Request $request, $project, $list)
+    public function update(Request $request)
     {
-        $project = Project::where('slug', $project)->first();
+        $projectList = ProjectList::where('project_list_id', $request->project_list_id)
+            ->whereHas('project', function ($query) {
+                $query->where('user_id', Auth::id());
+            })
+            ->first();
 
-        if ($project && $project->user_id === Auth::user()->id) {
-            $projectList = ProjectList::where('project_list_id', $list)
-                ->where('project_id', $project->project_id)
-                ->first();
-
-            if ($projectList) {
-                $projectList->update([
-                    'list_name' => $request->list_name,
-                ]);
-                return new ProjectListItemResource($projectList);
-            } else {
-                return response()->json(['error' => 'Project list not found'], 404);
-            }
+        if ($projectList) {
+            $projectList->update([
+                'list_name' => $request->list_name,
+            ]);
+            return new ProjectListItemResource($projectList);
         } else {
-            return response()->json(['error' => 'Project not found or unauthorized'], 404);
+            return response()->json(['error' => 'Project list not found or unauthorized'], 404);
         }
     }
 
     //destroy
-    public function destroy(Request $request, $project, $list)
+    public function destroy(Request $request)
     {
-        $project = Project::where('slug', $project)->first();
+        $projectList = ProjectList::where('project_list_id', $request->project_list_id)
+            ->whereHas('project', function ($query) {
+                $query->where('user_id', Auth::id());
+            })
+            ->first();
 
-        if ($project && $project->user_id === Auth::user()->id) {
-            $projectList = ProjectList::where('project_list_id', $list)
-                ->where('project_id', $project->project_id)
-                ->first();
-
-            if ($projectList) {
-                $projectList->delete();
-                return response()->json(['message' => 'Project list deleted successfully']);
-            } else {
-                return response()->json(['error' => 'Project list not found'], 404);
-            }
+        if ($projectList) {
+            $projectList->delete();
+            return response()->json(['message' => 'Project list deleted successfully']);
         } else {
-            return response()->json(['error' => 'Project not found or unauthorized'], 404);
+            return response()->json(['error' => 'Project list not found or unauthorized'], 404);
         }
     }
 }

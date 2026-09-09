@@ -40,12 +40,12 @@ class TaskController extends Controller
 
     /**
      * Update an existing task.
-     * Route: POST|PUT /api/tasks/{task}
+     * Route: POST /api/tasks/update
      */
-    public function update(UpdateTaskRequest $request, string|int $task)
+    public function update(UpdateTaskRequest $request)
     {
         // Locate task belonging to a project owned by the authenticated user
-        $taskModel = Task::where('task_id', $task)
+        $taskModel = Task::where('task_id', $request->task_id)
             ->whereHas('list.project', function ($query) {
                 $query->where('user_id', Auth::id());
             })
@@ -68,19 +68,19 @@ class TaskController extends Controller
             }
         }
 
-        $taskModel->update($request->validated());
+        $taskModel->update($request->safe()->except('task_id'));
 
         return new TaskResource($taskModel);
     }
 
     /**
      * Delete an existing task.
-     * Route: DELETE /api/tasks/{task}
+     * Route: DELETE /api/tasks/destroy
      */
-    public function destroy(Request $request, string|int $task): JsonResponse
+    public function destroy(Request $request): JsonResponse
     {
         // Locate task belonging to a project owned by the authenticated user
-        $taskModel = Task::where('task_id', $task)
+        $taskModel = Task::where('task_id', $request->task_id)
             ->whereHas('list.project', function ($query) {
                 $query->where('user_id', Auth::id());
             })

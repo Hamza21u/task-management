@@ -41,14 +41,14 @@ Route::prefix('projects')->middleware(['auth:sanctum'])->group(function () {
 
 Route::prefix('lists')->middleware(['auth:sanctum'])->group(function () {
     Route::post('/', [ProjectListController::class, 'create'])->name('projects.lists.create')->middleware('auth:sanctum');
-    Route::post('lists/{list}', [ProjectListController::class, 'update'])->name('projects.lists.update')->middleware('auth:sanctum');
-    Route::delete('lists/{list}', [ProjectListController::class, 'destroy'])->name('projects.lists.destroy')->middleware('auth:sanctum');   
+    Route::post('/update', [ProjectListController::class, 'update'])->name('projects.lists.update')->middleware('auth:sanctum');
+    Route::delete('/destroy', [ProjectListController::class, 'destroy'])->name('projects.lists.destroy')->middleware('auth:sanctum');
 });
 
 Route::prefix('tasks')->middleware(['auth:sanctum'])->group(function () {
     Route::post('/', [TaskController::class, 'create'])->name('tasks.create')->middleware('auth:sanctum');
-    Route::post('tasks/{task}', [TaskController::class, 'update'])->name('tasks.update')->middleware('auth:sanctum');
-    Route::delete('tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy')->middleware('auth:sanctum');   
+    Route::post('/update', [TaskController::class, 'update'])->name('tasks.update')->middleware('auth:sanctum');
+    Route::delete('/destroy', [TaskController::class, 'destroy'])->name('tasks.destroy')->middleware('auth:sanctum');
 });
 
 

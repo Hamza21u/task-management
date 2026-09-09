@@ -23,6 +23,7 @@ class UpdateTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'task_id'          => ['required', 'integer', 'exists:tasks,task_id'],
             'project_list_id'  => ['sometimes', 'required', 'integer', 'exists:project_lists,project_list_id'],
             'task_title'       => ['sometimes', 'required', 'string', 'max:255'],
             'task_description' => ['nullable', 'string'],
