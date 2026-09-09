@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Auth;
 
 class ProjectListController extends Controller
 {
-    public function create(StoreProjectListRequest $request, $project)
+    public function create(StoreProjectListRequest $request)
     {
-        $project = Project::where('slug', $project)->first();
+        $project = Project::find($request->project_id);
 
         if ($project && $project->user_id === Auth::user()->id) {
             $projectList = ProjectList::create([

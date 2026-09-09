@@ -15,12 +15,12 @@ class TaskController extends Controller
 {
     /**
      * Create a new task under a specific list.
-     * Route: POST /api/lists/{list}/tasks
+     * Route: POST /api/tasks
      */
-    public function create(StoreTaskRequest $request, string|int $list)
+    public function create(StoreTaskRequest $request)
     {
         // Find list belonging to a project owned by the authenticated user
-        $projectList = ProjectList::where('project_list_id', $list)
+        $projectList = ProjectList::where('project_list_id', $request->project_list_id)
             ->whereHas('project', function ($query) {
                 $query->where('user_id', Auth::id());
             })
